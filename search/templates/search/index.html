@@ -1,0 +1,194 @@
+{% extends 'search/base.html' %} {% block content %}
+<div class="flex flex-col h-full relative">
+  <header class="py-4 border-b border-[#30363D] bg-[#161B22]">
+    <div class="container flex items-center gap-3">
+      <i class="fa-solid fa-layer-group text-[#58A6FF]"></i>
+      <h1 class="font-bold text-lg tracking-tight">
+        StrataSearch
+        <span class="text-xs font-normal text-gray-500 ml-2">v2.0</span>
+      </h1>
+    </div>
+  </header>
+
+  <div id="chat-log" class="flex-1 overflow-y-auto p-4 pb-32 scroll-smooth">
+    <div
+      id="welcome-screen"
+      class="h-full flex flex-col items-center justify-center fade-in"
+    >
+      <div class="mb-8 text-center">
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#161B22] border border-[#30363D] mb-4"
+        >
+          <i class="fa-solid fa-magnifying-glass text-2xl text-[#58A6FF]"></i>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">Documentation Archaeologist</h2>
+        <p class="text-gray-400 max-w-md mx-auto">
+          Select a common migration topic or type your own query below.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl px-4">
+        <button
+          onclick="fillAndSend('What is the migration path for declarative_base in v2?')"
+          class="text-left p-6 bg-[#161B22] border border-[#30363D] rounded-lg hover:border-[#58A6FF] transition-all group"
+        >
+          <div class="flex items-center gap-2 mb-2 text-[#58A6FF]">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+            <span class="font-mono text-xs uppercase font-bold">Migration</span>
+          </div>
+          <h3 class="font-semibold mb-1 group-hover:text-[#58A6FF]">
+            Declarative Base
+          </h3>
+          <p class="text-sm text-gray-500">
+            How to migrate models from v1.4 to v2.0 style.
+          </p>
+        </button>
+
+        <button
+          onclick="fillAndSend('Show me the modern pattern for Session management with async.')"
+          class="text-left p-6 bg-[#161B22] border border-[#30363D] rounded-lg hover:border-[#3FB950] transition-all group"
+        >
+          <div class="flex items-center gap-2 mb-2 text-[#3FB950]">
+            <i class="fa-solid fa-database"></i>
+            <span class="font-mono text-xs uppercase font-bold">Patterns</span>
+          </div>
+          <h3 class="font-semibold mb-1 group-hover:text-[#3FB950]">
+            Async Sessions
+          </h3>
+          <p class="text-sm text-gray-500">
+            Best practices for managing async db connections.
+          </p>
+        </button>
+
+        <button
+          onclick="fillAndSend('Fix: AttributeError: module sqlalchemy has no attribute execute')"
+          class="text-left p-6 bg-[#161B22] border border-[#30363D] rounded-lg hover:border-[#D29922] transition-all group"
+        >
+          <div class="flex items-center gap-2 mb-2 text-[#D29922]">
+            <i class="fa-solid fa-bug"></i>
+            <span class="font-mono text-xs uppercase font-bold"
+              >Troubleshoot</span
+            >
+          </div>
+          <h3 class="font-semibold mb-1 group-hover:text-[#D29922]">
+            Common Errors
+          </h3>
+          <p class="text-sm text-gray-500">
+            Fixing the 'attribute execute' error in legacy code.
+          </p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-input-area absolute bottom-0 w-full">
+    <div class="container">
+      <form id="chat-form" hx-post="{% url 'chat' %}" class="w-full">
+        {% csrf_token %}
+        <div class="input-box">
+          <input
+            type="text"
+            id="user-input"
+            name="message"
+            placeholder="Ask about SQLAlchemy legacy vs modern patterns..."
+            autocomplete="off"
+          />
+          <button
+            type="submit"
+            class="px-4 py-2 text-[#58A6FF] hover:text-white transition-colors"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chatLog = document.getElementById("chat-log");
+  const chatForm = document.getElementById("chat-form");
+  const userInput = document.getElementById("user-input");
+
+  const observer = new MutationObserver(() => {
+    chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: "smooth" });
+  });
+  observer.observe(chatLog, { childList: true });
+
+  document.body.addEventListener("htmx:beforeRequest", function (evt) {
+    if (evt.detail.elt.id === "chat-form") {
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      const welcome = document.getElementById("welcome-screen");
+      if (welcome) {
+        welcome.style.opacity = "0";
+        setTimeout(() => welcome.remove(), 300);
+      }
+
+      const userBubbleHtml = `
+            <div class="w-full max-w-3xl mx-auto animate-fade-in-up mb-6">
+                <div class="flex items-start gap-3 justify-end">
+                    <div class="flex-grow max-w-[85%]">
+                        <div class="relative bg-white/5 rounded-2xl rounded-tr-sm p-4 border border-white/5">
+                            <div class="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">${escapeHtml(
+                              message
+                            )}</div>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 bg-charcoal rounded-lg flex items-center justify-center border border-white/10">
+                            <i class="fa-solid fa-user text-gray-500 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+      chatLog.insertAdjacentHTML("beforeend", userBubbleHtml);
+      userInput.value = "";
+
+      const uniqueId = "ai-response-" + Date.now();
+      const ghostBubbleHtml = `
+            <div id="${uniqueId}" class="w-full max-w-3xl mx-auto animate-fade-in-up mb-6">
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 mt-1">
+                        <div class="w-8 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-lg flex items-center justify-center border border-gray-600 shadow-lg">
+                            <i class="fa-solid fa-circle-notch fa-spin text-emerald-500/50 text-xs"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 bg-charcoal/50 border border-gray-700/50 rounded-2xl rounded-tl-sm p-5 shadow-xl">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="h-3 w-20 bg-gray-700/50 rounded animate-pulse"></div>
+                            <div class="h-3 w-12 bg-gray-700/30 rounded animate-pulse"></div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="h-2 w-3/4 bg-gray-700/40 rounded animate-pulse"></div>
+                            <div class="h-2 w-full bg-gray-700/40 rounded animate-pulse"></div>
+                            <div class="h-2 w-5/6 bg-gray-700/40 rounded animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+      chatLog.insertAdjacentHTML("beforeend", ghostBubbleHtml);
+
+      const targetElement = document.getElementById(uniqueId);
+      if (targetElement) {
+        evt.detail.target = targetElement;
+        evt.detail.swap = "outerHTML";
+      }
+    }
+  });
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function fillAndSend(text) {
+    userInput.value = text;
+    htmx.trigger(chatForm, "submit");
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,393 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StrataSearch - AI-powered legacy codebase documentation search">
+    <title>StrataSearch | Legacy Archaeologist</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        obsidian: '#0A0A0A',
+                        charcoal: '#1A1A1A',
+                        steel: '#2A2A2A',
+                        accent: '#10B981',
+                        'accent-dim': '#059669',
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Glossy Metal Background Effect */
+        body {
+            background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 50%, #0A0A0A 100%);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at top, rgba(42, 42, 42, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(42, 42, 42, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Metallic sheen */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.02) 50%,
+                transparent 70%
+            );
+            animation: metalSheen 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes metalSheen {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(10%, 10%); }
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .matrix-column {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #059669; /* accent-dim */
+            opacity: 0.05;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            animation: matrix-fall linear infinite;
+            white-space: nowrap;
+        }
+
+        .matrix-column p {
+            margin: 0;
+            padding: 0;
+        }
+
+        @keyframes matrix-fall {
+            0% {
+                transform: translateY(-100vh);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(26, 26, 26, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-strong {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { 
+            width: 6px; 
+        }
+        ::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { 
+            background: rgba(255, 255, 255, 0.15); 
+        }
+
+        /* Markdown Styling */
+        .markdown-body {
+            line-height: 1.7;
+            color: #D4D4D4;
+        }
+        
+        .markdown-body p {
+            margin-bottom: 1rem;
+            color: #D4D4D4;
+        }
+        
+        .markdown-body pre { 
+            background: rgba(10, 10, 10, 0.6);
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-x: auto; 
+            margin: 1rem 0;
+        }
+        
+        .markdown-body code { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.95em;
+            color: #E5E5E5;
+        }
+        
+        .markdown-body p code,
+        .markdown-body li code {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.25rem 0.4rem;
+            border-radius: 0.25rem;
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            font-size: 0.9em;
+        }
+        
+        .markdown-body h3 { 
+            font-size: 1.125rem; 
+            font-weight: 600; 
+            color: #F5F5F5;
+            margin-top: 1.5rem; 
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .markdown-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #E5E5E5;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .markdown-body ul { 
+            list-style-type: none;
+            padding-left: 1.5rem; 
+            margin-bottom: 1rem; 
+        }
+        
+        .markdown-body ul li {
+            position: relative;
+            margin-bottom: 0.5rem;
+            color: #D4D4D4;
+        }
+        
+        .markdown-body ul li::before {
+            content: '•';
+            position: absolute;
+            left: -1.25rem;
+            color: #10B981;
+            font-weight: bold;
+        }
+        
+        .markdown-body ol {
+            list-style-type: decimal;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .markdown-body ol li {
+            margin-bottom: 0.5rem;
+            color: #D4D4D4;
+        }
+        
+        .markdown-body strong { 
+            color: #F5F5F5; 
+            font-weight: 600; 
+        }
+        
+        .markdown-body a {
+            color: #10B981;
+            text-decoration: none;
+        }
+        
+        .markdown-body a:hover {
+            color: #34D399;
+        }
+        
+        .markdown-body blockquote {
+            border-left: 2px solid #10B981;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #A3A3A3;
+            font-style: italic;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9em;
+        }
+        
+        .markdown-body table th {
+            background: rgba(16, 185, 129, 0.1);
+            color: #E5E5E5;
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+        
+        .markdown-body table td {
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #D4D4D4;
+        }
+
+        /* Smooth animations */
+        * {
+            transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        /* Focus states */
+        input:focus,
+        button:focus {
+            outline: none;
+        }
+
+        /* Loading dots */
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+        }
+
+        .animate-bounce {
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-gray-300 font-sans h-screen flex flex-col overflow-hidden selection:bg-accent/20 selection:text-white antialiased">
+    <div class="matrix-bg">
+        <div class="matrix-column" style="animation-delay: -1s; animation-duration: 20s;"><p>0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101</p></div>
+        <div class="matrix-column" style="animation-delay: -5s; animation-duration: 22s;"><p>1010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010</p></div>
+        <div class="matrix-column" style="animation-delay: -9s; animation-duration: 18s;"><p>0011001100110011001100110011001100110011001100110011001100110011001100110011001100110011001100110011</p></div>
+        <div class="matrix-column" style="animation-delay: -12s; animation-duration: 25s;"><p>1100110011001100110011001100110011001100110011001111001100110011001100110011001100110011001100110011</p></div>
+        <div class="matrix-column" style="animation-delay: -3s; animation-duration: 21s;"><p>1110001110001110001110001110001110001110001110001111100011100011100011100011100011100011100011100011</p></div>
+        <div class="matrix-column" style="animation-delay: -7s; animation-duration: 23s;"><p>0001110001110001110001110001110001110001110001110000011100011100011100011100011100011100011100011100</p></div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Minimal toast system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const styles = {
+                'success': 'glass border-accent/30',
+                'error': 'glass border-red-500/30',
+                'info': 'glass border-white/10',
+            };
+            
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${styles[type]}`;
+            toast.innerHTML = `
+                <span class="text-sm text-gray-200">${message}</span>
+                <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-gray-300 ml-2">
+                    <i class="fa-solid fa-times text-xs"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        document.body.addEventListener('htmx:responseError', function() {
+            showToast('Request failed. Please try again.', 'error');
+        });
+
+        function copyToClipboard(button) {
+        // 1. Find the content
+        // We go up to the common parent (.glass-panel or equivalent), then find the markdown body
+        const container = button.closest('.flex-1'); 
+        const content = container.querySelector('.markdown-body');
+        
+        if (!content) return;
+
+        // 2. Extract text (innerText preserves line breaks but ignores HTML tags)
+        const textToCopy = content.innerText;
+
+        // 3. Copy to clipboard
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            // 4. Visual Feedback
+            const icon = button.querySelector('i');
+            
+            // Switch to Checkmark
+            icon.classList.remove('fa-regular', 'fa-copy');
+            icon.classList.add('fa-solid', 'fa-check', 'text-emerald-400');
+            
+            // Revert after 2 seconds
+            setTimeout(() => {
+                icon.classList.remove('fa-solid', 'fa-check', 'text-emerald-400');
+                icon.classList.add('fa-regular', 'fa-copy');
+            }, 2000);
+            
+            // Optional: Show a toast
+            if (typeof showToast === 'function') {
+                showToast('Response copied to clipboard', 'success');
+            }
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            if (typeof showToast === 'function') {
+                showToast('Failed to copy text', 'error');
+            }
+        });
+    }
+    </script>
+</body>
+</html>
