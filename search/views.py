@@ -44,14 +44,17 @@ def chat_message(request):
     
     if not user_input:
         return render(request, 'search/partials/message.html', {
+            'question': user_input,
             'error': 'Please enter a message.',
             'ai_answer': '⚠️ **Error**: No message provided. Please try again.'
         })
         
+    context = {'question': user_input}
+        
     if 'chat_history' not in request.session:
         request.session['chat_history'] = []
     
-    # Get the last 3 turns (keep context window small for speed)
+    # Get the last 3 turns
     # Format: [(user, ai), (user, ai)]
     history = request.session['chat_history'][-3:]
 
@@ -63,7 +66,6 @@ def chat_message(request):
         
         logger.info(f"Query: {user_input[:50]}... ")
 
-        # Process sources to create correct URLs
         processed_sources = []
         raw_sources = response_data.get('sources', [])
         data_dir = os.path.join(settings.BASE_DIR, 'data')
@@ -80,7 +82,7 @@ def chat_message(request):
                     processed_url = reverse('get_document', kwargs={'filename': relative_path})
                 except ValueError:
                     # This can happen if the path is on a different drive on Windows
-                    processed_url = '#' # Or some other indicator of an issue
+                    processed_url = '#'
             
             processed_sources.append({'name': name, 'url': processed_url})
 
@@ -123,7 +125,7 @@ def get_document_content(request, filename):
 
     content_type, encoding = mimetypes.guess_type(file_path)
     if not content_type:
-        content_type = 'text/plain' # Default fallback
+        content_type = 'text/plain'
 
     try:
         with open(file_path, 'rb') as f:

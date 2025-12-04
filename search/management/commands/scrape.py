@@ -29,26 +29,17 @@ class Command(BaseCommand):
         self.crawl(start_url, max_pages, depth_limit)
 
     def clean_content(self, soup):
-        # 1. Remove noise
         for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'iframe', 'noscript']):
             tag.decompose()
 
-        # 2. Extract Title
         title = soup.title.string.strip() if soup.title else "Untitled"
-
-        # 3. Clean Text (separate by newline)
         text = soup.get_text(separator='\n', strip=True)
 
-        # 4. Basic code block detection (metadata only)
         code_blocks = len(soup.find_all('pre'))
 
         return title, text, code_blocks
 
     def save_page_to_db(self, url, title, content):
-        """
-        Saves a single page to the database using the ScrapedPage model.
-        It uses update_or_create to avoid duplicates and handle re-scraping.
-        """
         try:
             obj, created = ScrapedPage.objects.update_or_create(
                 url=url,
@@ -56,8 +47,8 @@ class Command(BaseCommand):
                     'title': title,
                     'content': content,
                     'status': 'pending',
-                    'processed_at': None,  # Reset on re-scrape
-                    'scraped_at': timezone.now()  # Manually update timestamp
+                    'processed_at': None,
+                    'scraped_at': timezone.now()
                 }
             )
             return created

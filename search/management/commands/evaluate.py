@@ -1,16 +1,11 @@
-# search/management/commands/evaluate.py
 import os
-import pandas as pd # Add pandas to handle the calculation easily
+import pandas as pd
 from django.core.management.base import BaseCommand
 from rich.console import Console
 from rich.table import Table
 from datasets import Dataset
-
-# RAGAS Imports
 from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy
-
-# LangChain / Local LLM Imports
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from search.services.rag import answer_question
 
