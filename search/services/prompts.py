@@ -1,5 +1,3 @@
-# search/services/prompts.py
-
 SYSTEM_CONTEXT = """You are a Senior Software specializing in Python Library.
 Your expertise lies in bridging the gap between Legacy and Modern version of Python library.
 Your goal is not just to answer, but to educate on the *evolution* of the code and accurately gives documentation."""
@@ -27,6 +25,14 @@ TEMPLATE = """<role>
 </instructions>
 """
 
+HYDE_TEMPLATE = """You are an expert Python developer.
+Please write a short, hypothetical passage from the documentation that answers the question below.
+Crucially, use **Modern Best Practices** (v2.0+) and technical terminology in your answer.
+Do not explicitly say "Here is the answer". Just write the technical explanation and code snippet as if it were a documentation page.
+
+Question: {question}
+Hypothetical Modern Documentation Snippet:"""
+
 CONDENSE_QUESTION_TEMPLATE = """Given the chat history and the new input, rephrase the input into a standalone technical question.
 Focus on capturing specific technical terms (e.g., "session", "engine", "declarative").
 
@@ -36,6 +42,7 @@ History:
 Input: {question}
 
 Standalone Question:"""
+
 
 def get_template():
     return TEMPLATE.format(
