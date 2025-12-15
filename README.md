@@ -30,16 +30,6 @@ StrataSearch implements a multi-stage RAG pipeline designed for high-precision t
 
 ---
 
-## Key Features
-
-- **Legacy vs Modern Code Analysis**: Automatically identifies deprecated code patterns and suggests modern alternatives
-
-- **Advanced RAG Pipeline**: Implements a multi-stage retrieval process including multi-query generation and cross-encoder re-ranking for high-precision results
-
-- **Command-Line Driven Workflow**: Includes Django management commands for data scraping, knowledge base ingestion, and RAG pipeline evaluation
-
-- **Private & Local-First**: Runs entirely offline using local models with Ollama, ensuring data privacy and control.
-
 ## Installation
 
 ### Prerequisites
@@ -87,7 +77,7 @@ python manage.py ingest
 python manage.py runserver
 ```
 
-## 🧪 Evaluation
+## Evaluation
 
 The project includes a built-in evaluation command using the RAGAs framework to measure the performance of the RAG pipeline
 
@@ -95,18 +85,12 @@ The project includes a built-in evaluation command using the RAGAs framework to 
 python manage.py evaluate
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology | Description |
-
 |---|---|---|
-
 | Backend | Django 5.0 | Async Views & Management Commands |
-
 | Pipeline | LangChain | RAG Orchestration |
-
 | Inference | Ollama | Local LLM (Qwen 2.5) |
-
 | Search | FAISS + FlashRank | Vector Search + Cross-Encoder Re-ranking |
-
 | Frontend | HTMX + Tailwind | Reactive UI without heavy frameworks |
